@@ -5,17 +5,18 @@ USE AutoAlertDB;
 GO
 
 -- ============================================================
---  Script de creación de base de datos para AutoAlert
+--  Script de creación de base de datos: AutoAlertDB
 --  Autor: Aswin Niño
---  Descripción: Estructura relacional para gestión de alertas 
---  de servicios públicos con auditoría, roles, permisos y acceso
+--  Descripción: Estructura relacional para la gestión de alertas 
+--  de servicios públicos con control de acceso, roles, permisos,
+--  auditoría y configuración por grupos empresariales.
 -- ============================================================
 
 
 -- ============================================================
 -- 1. Tabla: Groups
--- Contiene los grupos empresariales. Cada grupo puede tener
--- múltiples empresas asociadas.
+-- Contiene los grupos empresariales. 
+-- Cada grupo puede tener múltiples empresas asociadas.
 -- ============================================================
 CREATE TABLE Groups (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -27,8 +28,8 @@ CREATE TABLE Groups (
 
 -- ============================================================
 -- 2. Tabla: Companies
--- Contiene las empresas asociadas a los grupos.
--- Cada empresa puede tener múltiples tiendas.
+-- Contiene las empresas pertenecientes a un grupo.
+-- Cada empresa puede tener múltiples tiendas o puntos de venta.
 -- ============================================================
 CREATE TABLE Companies (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -44,7 +45,7 @@ CREATE TABLE Companies (
 
 -- ============================================================
 -- 3. Tabla: Stores
--- Contiene las tiendas o puntos de venta de cada empresa.
+-- Contiene las tiendas o puntos de venta asociados a cada empresa.
 -- ============================================================
 CREATE TABLE Stores (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -59,7 +60,7 @@ CREATE TABLE Stores (
 
 -- ============================================================
 -- 4. Tabla: DocumentTypes
--- Catálogo de tipos de documento (CC, NIT, CE, etc.)
+-- Catálogo maestro de tipos de documento (CC, NIT, CE, etc.).
 -- ============================================================
 CREATE TABLE DocumentTypes (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -71,7 +72,7 @@ CREATE TABLE DocumentTypes (
 
 -- ============================================================
 -- 5. Tabla: Roles
--- Define los diferentes roles del sistema (Admin, Usuario, etc.)
+-- Define los diferentes roles del sistema (Administrador, Usuario, etc.).
 -- ============================================================
 CREATE TABLE Roles (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -83,7 +84,7 @@ CREATE TABLE Roles (
 
 -- ============================================================
 -- 6. Tabla: Users
--- Contiene los usuarios del sistema, asociados a grupos y/o empresas.
+-- Contiene los usuarios del sistema, asociados a roles y tipos de documento.
 -- ============================================================
 CREATE TABLE Users (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -104,7 +105,10 @@ CREATE TABLE Users (
     FOREIGN KEY (DocumentTypeId) REFERENCES DocumentTypes(Id)
 );
 
--- MÓDULOS
+-- ============================================================
+-- 7. Tabla: Modules
+-- Define los módulos principales del sistema (por ejemplo: Administración, Reportes).
+-- ============================================================
 CREATE TABLE Modules (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Name NVARCHAR(100) NOT NULL,
@@ -112,7 +116,10 @@ CREATE TABLE Modules (
     UpdatedAt DATETIME NULL
 );
 
--- SUBMÓDULOS
+-- ============================================================
+-- 8. Tabla: SubModules
+-- Define los submódulos o funcionalidades dentro de cada módulo.
+-- ============================================================
 CREATE TABLE SubModules (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     ModuleId UNIQUEIDENTIFIER NOT NULL,
@@ -120,7 +127,11 @@ CREATE TABLE SubModules (
     FOREIGN KEY (ModuleId) REFERENCES Modules(Id)
 );
 
--- ROLES + MODULES
+-- ============================================================
+-- 9. Tabla: RoleSubModules
+-- Define los permisos por rol sobre cada submódulo.
+-- Ejemplo: El rol “Administrador” tiene acceso al submódulo “Configuraciones”.
+-- ============================================================
 CREATE TABLE RoleSubModules (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     RoleId UNIQUEIDENTIFIER NOT NULL,
@@ -131,7 +142,12 @@ CREATE TABLE RoleSubModules (
     FOREIGN KEY (RoleId) REFERENCES Roles(Id),
     FOREIGN KEY (SubModuleId) REFERENCES SubModules(Id)
 );
--- PERMISOS PERSONALIZADOS (OVERRIDE)
+
+-- ============================================================
+-- 10. Tabla: UserSubModules
+-- Define permisos personalizados de usuario que sobrescriben los permisos del rol.
+-- Ejemplo: Un usuario estándar puede obtener acceso temporal a un submódulo específico.
+-- ============================================================
 CREATE TABLE UserSubmodules (
     UserId UNIQUEIDENTIFIER NOT NULL,
     SubModuleId UNIQUEIDENTIFIER NOT NULL,
@@ -143,7 +159,7 @@ CREATE TABLE UserSubmodules (
 
 -- ============================================================
 -- 11. Tabla: Services
--- Contiene los servicios públicos asociados a las tiendas.
+-- Contiene los servicios públicos asociados a las tiendas (agua, luz, gas, etc.).
 -- ============================================================
 CREATE TABLE Services (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -167,9 +183,9 @@ CREATE TABLE Services (
 -- ============================================================
 CREATE TABLE Alerts (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    ServiceId UNIQUEIDENTIFIER NOT NULL,        -- Servicio relacionado a la alerta
-    ScheduledAt DATETIME NOT NULL,              -- Fecha/hora programada de envío
-    Channel NVARCHAR(50),                       -- Canal (WhatsApp, Email, SMS)
+    ServiceId UNIQUEIDENTIFIER NOT NULL,        -- Servicio asociado a la alerta
+    ScheduledAt DATETIME NOT NULL,              -- Fecha y hora programada para el envío
+    Channel NVARCHAR(50),                       -- Canal de envío (WhatsApp, Email, SMS)
     Status NVARCHAR(50),                        -- Estado (Programada, Enviada, Fallida)
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
@@ -178,13 +194,13 @@ CREATE TABLE Alerts (
 
 -- ============================================================
 -- 13. Tabla: Notifications
--- Guarda los registros de alertas efectivamente enviadas.
+-- Guarda el historial de alertas efectivamente enviadas a los usuarios.
 -- ============================================================
 CREATE TABLE Notifications (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     AlertId UNIQUEIDENTIFIER NOT NULL,          -- Alerta enviada
     UserId UNIQUEIDENTIFIER NOT NULL,           -- Usuario destinatario
-    SentAt DATETIME,                            -- Fecha de envío real
+    SentAt DATETIME,                            -- Fecha real de envío
     Result NVARCHAR(100),                       -- Resultado (Enviado, Fallido, Reintento)
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
@@ -195,7 +211,7 @@ CREATE TABLE Notifications (
 -- ============================================================
 -- 14. Tabla: UserCompanies
 -- Define las empresas a las que un usuario tiene acceso.
--- Ejemplo: un administrador de grupo puede ver todas las empresas.
+-- Ejemplo: un usuario con rol de “Administrador de Grupo” puede acceder a todas las empresas del grupo.
 -- ============================================================
 CREATE TABLE UserCompanies (
     UserId UNIQUEIDENTIFIER NOT NULL,
@@ -215,7 +231,7 @@ CREATE TABLE UserCompanies (
 CREATE TABLE UserGroups (
     UserId UNIQUEIDENTIFIER NOT NULL,
     GroupId UNIQUEIDENTIFIER NOT NULL,
-    AccessType NVARCHAR(50) DEFAULT 'view',     -- Tipo de acceso
+    AccessType NVARCHAR(50) DEFAULT 'view',     -- Tipo de acceso (view, edit, manage)
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     PRIMARY KEY (UserId, GroupId),
@@ -226,7 +242,7 @@ CREATE TABLE UserGroups (
 -- ============================================================
 -- 16. Tabla: Logs (Auditoría)
 -- Registra las acciones ejecutadas por los usuarios del sistema.
--- Compatible con eventos de .NET Core (EF SaveChanges, etc.)
+-- Compatible con eventos generados desde .NET Core (SaveChanges, etc.).
 -- ============================================================
 CREATE TABLE Logs (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
@@ -236,8 +252,8 @@ CREATE TABLE Logs (
     RecordId UNIQUEIDENTIFIER NULL,         -- ID del registro afectado
     OldValues NVARCHAR(MAX) NULL,           -- JSON con valores previos
     NewValues NVARCHAR(MAX) NULL,           -- JSON con valores nuevos
-    Timestamp DATETIME DEFAULT GETDATE(),   -- Fecha/hora del evento
-    IpAddress NVARCHAR(50) NULL,            -- IP del usuario que ejecutó la acción
+    Timestamp DATETIME DEFAULT GETDATE(),   -- Fecha y hora del evento
+    IpAddress NVARCHAR(50) NULL,            -- Dirección IP del usuario
     FOREIGN KEY (UserId) REFERENCES Users(Id)
 );
 GO
