@@ -22,7 +22,6 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.FindAsync(id);
     }
-
     public async Task<Users> CreateUserAsync(Users user)
     {
         _context.Users.Add(user);
