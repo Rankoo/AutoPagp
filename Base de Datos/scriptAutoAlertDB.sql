@@ -98,7 +98,9 @@ CREATE TABLE Users (
     PhoneNumber NVARCHAR(20),
     GoogleId NVARCHAR(255) NULL,
     DocumentNumber NVARCHAR(50) NULL,
+    Position NVARCHAR(100) NULL,
     IsActive BIT DEFAULT 1,
+    ChangePassword BIT DEFAULT 1,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     FOREIGN KEY (RoleId) REFERENCES Roles(Id),
@@ -256,4 +258,14 @@ CREATE TABLE Logs (
     IpAddress NVARCHAR(50) NULL,            -- Dirección IP del usuario
     FOREIGN KEY (UserId) REFERENCES Users(Id)
 );
+GO
+
+
+insert into DocumentTypes (Name, Abbreviation) 
+values  ('Cédula de Ciudadanía','CC'),
+        ('Cédula de Extranjería', 'CE'),
+        ('Tarjeta de Identidad', 'TI');
+GO
+
+insert into Roles (Name) values ('Admin'),('Supervisor'),('User');
 GO
