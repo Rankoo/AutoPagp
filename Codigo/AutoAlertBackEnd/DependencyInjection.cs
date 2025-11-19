@@ -21,6 +21,9 @@ namespace AutoAlertBackEnd
             // Register repositories
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<ICompanyRepository, CompanyRepository>();
+            services.AddScoped<IStoreRepository, StoreRepository>();
+            services.AddScoped<IGroupRepository, GroupRepository>();
 
             return services;
         }
