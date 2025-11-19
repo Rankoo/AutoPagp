@@ -1,6 +1,7 @@
 using AutoAlertBackEnd.Dtos;
 using AutoAlertBackEnd.Models;
 using AutoAlertBackEnd.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutoAlertBackEnd.Controllers;
@@ -16,66 +17,105 @@ public class UsersController : ControllerBase
         _userRepository = userRepository;
     }
 
-    [HttpGet]
+    [Authorize]
+    [HttpGet("GetAllUsers")]
     public async Task<ActionResult<IEnumerable<Users>>> GetUsers()
     {
-        var users = await _userRepository.GetAllUsersAsync();
-        return Ok(users);
+        try {
+            var users = await _userRepository.GetAllUsersAsync();
+            return Ok(users);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpGet("{id}")]
+    [Authorize]
+    [HttpGet("GetUserById/{id}")]
     public async Task<ActionResult<Users>> GetUser(Guid id)
     {
-        var user = await _userRepository.GetUserByIdAsync(id);
+        try {
 
-        if (user == null)
-            return NotFound();
+            var user = await _userRepository.GetUserByIdAsync(id);
 
-        return Ok(user);
+            if (user == null)
+                return NotFound();
+
+            return Ok(user);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpPost]
+    [HttpPost("CreateUser")]
     public async Task<ActionResult<Users>> CreateUser(CreateUserDto newUser)
     {
-        var existingUser = await _userRepository.GetUserByEmailAsync(newUser.Email);
-        if (existingUser != null)
-            return BadRequest("El usuario ya se encuentra registrado");
+        try {
+            var existingUser = await _userRepository.GetUserByEmailAsync(newUser.Email);
+            if (existingUser != null)
+                return BadRequest("El usuario ya se encuentra registrado");
 
-        var createdUser = await _userRepository.CreateUserAsync(newUser);
-        return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
+            var createdUser = await _userRepository.CreateUserAsync(newUser);
+            return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("UpdateUser/{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, Users user)
     {
-        if (id != user.Id)
-            return BadRequest();
+        try {
+            if (id != user.Id)
+                return BadRequest();
 
-        var updatedUser = await _userRepository.UpdateUserAsync(user);
-        if (updatedUser == null)
-            return NotFound();
+            var updatedUser = await _userRepository.UpdateUserAsync(user);
+            if (updatedUser == null)
+                return NotFound();
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("DeleteUser/{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
-        var result = await _userRepository.DeleteUserAsync(id);
-        if (!result)
-            return NotFound();
+        try {
+            var result = await _userRepository.DeleteUserAsync(id);
+            if (!result)
+                return NotFound();
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpGet("email/{email}")]
+    [HttpGet("GetUserByEmail/{email}")]
     public async Task<ActionResult<Users>> GetUserByEmail(string email)
     {
-        var user = await _userRepository.GetUserByEmailAsync(email);
+        try {
+            var user = await _userRepository.GetUserByEmailAsync(email);
 
-        if (user == null)
-            return NotFound();
+            if (user == null)
+                return NotFound();
 
-        return Ok(user);
+            return Ok(user);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 }

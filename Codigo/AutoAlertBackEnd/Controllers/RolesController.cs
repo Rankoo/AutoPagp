@@ -18,66 +18,102 @@ public class RolesController : ControllerBase
         _roleRepository = roleRepository;
     }
 
-    [HttpGet]
+    [HttpGet("GetAllRoles")]
     public async Task<ActionResult<IEnumerable<Roles>>> GetRoles()
     {
-        var roles = await _roleRepository.GetAllRolesAsync();
-        return Ok(roles);
+        try {
+            var roles = await _roleRepository.GetAllRolesAsync();
+            return Ok(roles);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("GetRolById/{id}")]
     public async Task<ActionResult<Roles>> GetRole(Guid id)
     {
-        var role = await _roleRepository.GetRoleByIdAsync(id);
+        try {
+            var role = await _roleRepository.GetRoleByIdAsync(id);
 
-        if (role == null)
-            return NotFound();
+            if (role == null)
+                return NotFound();
 
-        return Ok(role);
+            return Ok(role);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpPost]
+    [HttpPost("CreateRol")]
     public async Task<ActionResult<Roles>> CreateRole(Roles role)
     {
-        var existingRole = await _roleRepository.GetRoleByNameAsync(role.Name);
-        if (existingRole != null)
-            return BadRequest("A role with this name already exists");
+        try {
+            var existingRole = await _roleRepository.GetRoleByNameAsync(role.Name);
+            if (existingRole != null)
+                return BadRequest("A role with this name already exists");
 
-        var createdRole = await _roleRepository.CreateRoleAsync(role);
-        return CreatedAtAction(nameof(GetRole), new { id = createdRole.Id }, createdRole);
+            var createdRole = await _roleRepository.CreateRoleAsync(role);
+            return CreatedAtAction(nameof(GetRole), new { id = createdRole.Id }, createdRole);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("UpdateRol/{id}")]
     public async Task<IActionResult> UpdateRole(Guid id, Roles role)
     {
-        if (id != role.Id)
-            return BadRequest();
+        try {
+            if (id != role.Id)
+                return BadRequest();
 
-        var updatedRole = await _roleRepository.UpdateRoleAsync(role);
-        if (updatedRole == null)
-            return NotFound();
+            var updatedRole = await _roleRepository.UpdateRoleAsync(role);
+            if (updatedRole == null)
+                return NotFound();
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("DeleteRol/{id}")]
     public async Task<IActionResult> DeleteRole(Guid id)
     {
-        var result = await _roleRepository.DeleteRoleAsync(id);
-        if (!result)
-            return NotFound();
+        try {
+            var result = await _roleRepository.DeleteRoleAsync(id);
+            if (!result)
+                return NotFound();
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 
-    [HttpGet("name/{name}")]
+    [HttpGet("GetRolByName/{name}")]
     public async Task<ActionResult<Roles>> GetRoleByName(string name)
     {
-        var role = await _roleRepository.GetRoleByNameAsync(name);
+        try {
+            var role = await _roleRepository.GetRoleByNameAsync(name);
 
-        if (role == null)
-            return NotFound();
+            if (role == null)
+                return NotFound();
 
-        return Ok(role);
+            return Ok(role);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e);
+        }
     }
 }
