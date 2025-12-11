@@ -24,6 +24,17 @@ namespace AutoAlertBackEnd
             services.AddScoped<ICompanyRepository, CompanyRepository>();
             services.AddScoped<IStoreRepository, StoreRepository>();
             services.AddScoped<IGroupRepository, GroupRepository>();
+            services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();
+            services.AddScoped<IModuleRepository, ModuleRepository>();
+            services.AddScoped<ISubModuleRepository, SubModuleRepository>();
+            services.AddScoped<IRoleSubModuleRepository, RoleSubModuleRepository>();
+            services.AddScoped<IUserSubmoduleRepository, UserSubmoduleRepository>();
+            services.AddScoped<IServiceRepository, ServiceRepository>();
+            services.AddScoped<IAlertRepository, AlertRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IUserCompanyRepository, UserCompanyRepository>();
+            services.AddScoped<IUserGroupRepository, UserGroupRepository>();
+            services.AddScoped<ILogRepository, LogRepository>();
 
             return services;
         }
